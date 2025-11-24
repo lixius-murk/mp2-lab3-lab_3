@@ -1,0 +1,62 @@
+package org.lab_3v1.cpu_lib.handlers;
+
+import org.lab_3v1.cpu_lib.cpu.CPU;
+import org.lab_3v1.cpu_lib.instructions.InstructCode;
+import org.lab_3v1.cpu_lib.instructions.Instructions;
+import org.lab_3v1.cpu_lib.instructions.InstructionsException;
+import org.lab_3v1.cpu_lib.memory.FlagRegister;
+
+public class ControlHandler extends Handler {
+    @Override
+    public boolean canHandle(Instructions instruction) {
+        return (instruction.getInstructCode() == InstructCode.JMP ||
+                instruction.getInstructCode() == InstructCode.JE ||
+                instruction.getInstructCode() == InstructCode.JL ||
+                instruction.getInstructCode() == InstructCode.JG);
+    }
+
+    @Override
+    public void run(Instructions instruction, CPU cpu) throws InstructionsException {
+        if (canHandle(instruction)) {
+            switch(instruction.getInstructCode()){
+                case JMP -> handleJMP(instruction, cpu);
+                case JE -> handleJE(instruction, cpu);
+                case JG -> handleJG(instruction, cpu);
+                case JL -> handleJL(instruction, cpu);
+                default -> throw new InstructionsException("Unknown instruction!");
+            }
+        }
+        else{
+            passToNext(instruction, cpu);
+        }
+    }
+
+
+
+    public void handleJMP(Instructions instruction, CPU cpu){
+        Object[] operands = instruction.getOperands();
+        int address = (int) operands[0];
+        cpu.setProgramCounter(address);
+    }
+    public void handleJE(Instructions instruction, CPU cpu){
+        Object[] operands = instruction.getOperands();
+        FlagRegister flagRegister = cpu.getFlags();
+        int hop = (int) operands[0];
+        if (flagRegister.isZF()) {
+            cpu.setProgramCounter(cpu.getProgramCounter() + hop);}
+    }
+    public void handleJG(Instructions instruction, CPU cpu){
+        Object[] operands = instruction.getOperands();
+        FlagRegister flagRegister = cpu.getFlags();
+        int hop = (int) operands[0];
+        if (flagRegister.isSF() == flagRegister.isOF() && !flagRegister.isZF()) {
+            cpu.setProgramCounter(cpu.getProgramCounter() + hop );}
+    }
+    public void handleJL(Instructions instruction, CPU cpu){
+        Object[] operands = instruction.getOperands();
+        FlagRegister flagRegister = cpu.getFlags();
+        int hop = (int) operands[0];
+        if (flagRegister.isSF() != flagRegister.isOF()) {
+            cpu.setProgramCounter(cpu.getProgramCounter() + hop );}
+    }
+}
