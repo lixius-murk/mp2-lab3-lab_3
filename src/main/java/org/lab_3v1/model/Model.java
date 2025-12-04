@@ -1,5 +1,6 @@
-package org.lab_3v1.cpu_lib;
+package org.lab_3v1.model;
 
+import org.lab_3v1.cpu_lib.Executor;
 import org.lab_3v1.cpu_lib.cpu.CPU;
 import org.lab_3v1.cpu_lib.instructions.InstructCode;
 import org.lab_3v1.cpu_lib.instructions.Instructions;
@@ -28,7 +29,7 @@ public class Model implements Iterable<Instructions> {
         observers.remove(observer);
     }
 
-    private void notifyObservers() {
+    private void notifyObservers() throws InstructionsException {
         for (IObserver observer : observers) {
             observer.event();
         }
@@ -47,7 +48,7 @@ public class Model implements Iterable<Instructions> {
         return cpu.getProgramCounter();
     }
 
-    public void setProgramCounter(int pc) {
+    public void setProgramCounter(int pc) throws InstructionsException {
         cpu.setProgramCounter(pc);
         notifyObservers();
     }
@@ -87,11 +88,7 @@ public class Model implements Iterable<Instructions> {
         }
     }
 
-    public void clearInstructions() throws InstructionsException {
-        instructionsList.clear();
-        instructionCountMap.clear();
-        notifyObservers();
-    }
+
 
     public Instructions getInstruction(int index) {
         if (index >= 0 && index < instructionsList.size()) {
@@ -119,14 +116,21 @@ public class Model implements Iterable<Instructions> {
         notifyObservers();
     }
 
-    public void resetProgram() {
+    public void resetProgram() throws InstructionsException {
+        clearInstructions();
         cpu.setProgramCounter(0);
         notifyObservers();
     }
+    public void clearInstructions() throws InstructionsException {
+        instructionsList.clear();
+        instructionCountMap.clear();
+        notifyObservers();
+    }
 
-    public void resetCPU() {
+    public void resetCPU() throws InstructionsException {
         this.cpu = new CPU();
         this.executor = new Executor(cpu);
+        initializeMemory();
         notifyObservers();
     }
 
@@ -186,5 +190,36 @@ public class Model implements Iterable<Instructions> {
     @Override
     public Iterator<Instructions> iterator() {
         return instructionsList.iterator();
+    }
+
+    public int[] getMemory100() {
+        int[] memoryCells = new int[100];
+        for (int i = 0; i < 100; i++) {
+            memoryCells[i] = getMemoryValue(i);
+        }
+        return memoryCells;
+    }
+    private void initializeMemory() {
+        for (int i = 0; i < 100; i++) {
+            cpu.getMemory().write(i, 0);
+        }
+    }
+
+    private int getMemoryValue(int i) {
+        return cpu.getMemory().read(i);
+    }
+
+    public void executeInstruction(int index) throws InstructionsException {
+        int currentPC = index;
+
+        if (currentPC >= instructionsList.size()) {
+            throw new InstructionsException("PC out of range");
+        }
+
+        Instructions instruction = instructionsList.get(currentPC);
+        cpu.execute(instruction);
+
+        cpu.setProgramCounter(currentPC + 1);
+        notifyObservers();
     }
 }

@@ -1,9 +1,9 @@
-package org.lab_3v1.cpu_lib;
+package org.lab_3v1.model;
 
 public class BModel {
-    private Model m;
+    private static Model m;
 
-    public  Model build() {
+    public  static Model build() {
         if (m == null) {
             m = new Model();
         }
@@ -14,7 +14,4 @@ public class BModel {
         m = new Model();
     }
 
-    public  Model getInstance() {
-        return build();
-    }
 }

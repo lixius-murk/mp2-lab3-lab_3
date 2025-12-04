@@ -2,19 +2,58 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 
-<AnchorPane prefHeight="400.0" prefWidth="606.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.lab_3v1.MainFrame">
-   <children>
-      <ScrollPane fx:id="ScrollPaneInstructionList" layoutY="164.0" prefHeight="236.0" prefWidth="428.0">
-        <content>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="234.0" prefWidth="438.0" style="-fx-background-color: FLORALWHITE;" />
-        </content>
-      </ScrollPane>
-      <Pane fx:id="PaneRegisterState" prefHeight="163.0" prefWidth="288.0" style="-fx-background-color: FLORALWHITE; -fx-border-color: BLACK;" />
-      <Pane fx:id="PaneMemoryState" layoutX="288.0" prefHeight="163.0" prefWidth="317.0" style="-fx-background-color: FLORALWHITE; -fx-border-color: BLACK;" />
-      <Pane layoutX="426.0" layoutY="162.0" prefHeight="240.0" prefWidth="180.0" style="-fx-background-color: FLORALWHITE; -fx-border-color: BLACK;" />
-      <Button fx:id="BresetProgram" layoutX="450.0" layoutY="321.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="132.0" text="Reset&#10;program" textAlignment="CENTER" />
-      <Button fx:id="BexecuteInstruction" layoutX="450.0" layoutY="256.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="132.0" text="Execute next&#10;instruction" textAlignment="CENTER" />
-      <Button fx:id="BaddInstruction" layoutX="450.0" layoutY="187.0" mnemonicParsing="false" prefHeight="52.0" prefWidth="132.0" text="Add instruction" />
-   </children>
+<AnchorPane prefHeight="300.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.lab_3v1.controllers.MainFrameController">
+
+   <VBox layoutX="10.0" layoutY="10.0" spacing="10.0">
+
+      <HBox prefHeight="200.0" spacing="10.0">
+
+         <!--регистры-->
+         <VBox spacing="5.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
+            <Label style="-fx-font-size: 16pt; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Регистры" />
+            <Pane fx:id="PaneRegisterState" prefHeight="150.0" prefWidth="250.0" />
+         </VBox>
+
+         <!--  память -->
+         <VBox prefWidth="500.0" spacing="5.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+               <Label style="-fx-font-size: 16pt; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Память (0-99)" />
+               <Label style="-fx-font-size: 10pt; -fx-text-fill: #7f8c8d;" text="10x10 ячеек" />
+            </HBox>
+            <ScrollPane prefHeight="150.0" prefWidth="480.0" style="-fx-background-color: white; -fx-border-color: #bdc3c7;">
+               <FlowPane fx:id="FlowPaneMem" prefWidth="480.0" />
+            </ScrollPane>
+         </VBox>
+
+         <!-- кнопки -->
+         <VBox alignment="TOP_CENTER" prefWidth="200.0" spacing="10.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
+
+            <Button fx:id="BaddInstruction" graphicTextGap="0.0" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #3498db; -fx-font-weight: bold;" text="Add new instr." textFill="WHITE">
+               <font>
+                  <Font name="Comic Sans MS" size="10.0" />
+               </font></Button>
+
+            <Button fx:id="BexecuteInstruction" graphicTextGap="0.0" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #2ecc71; -fx-font-weight: bold;" text="Execute next instr." textFill="WHITE">
+               <font>
+                  <Font name="Comic Sans MS" size="10.0" />
+               </font></Button>
+
+            <Button fx:id="BresetProgram" graphicTextGap="0.0" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #e74c3c;  -fx-font-weight: bold;" text="Reset all instr." textFill="WHITE">
+               <font>
+                  <Font name="Comic Sans MS" size="10.0" />
+               </font></Button>
+            <Button fx:id="Bdebug" mnemonicParsing="false" prefHeight="26.0" prefWidth="178.0" text="Debug" />
+         </VBox>
+      </HBox>
+
+      <!-- список инструкций -->
+      <VBox prefHeight="439.0" prefWidth="994.0" spacing="5.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
+
+         <ScrollPane fx:id="ScrollpaneInstructions" maxHeight="417.0" maxWidth="972.0" minHeight="417.0" minWidth="972.0" prefHeight="417.0" prefWidth="972.0" style="-fx-background-color: white; -fx-border-color: #bdc3c7;">
+            <AnchorPane minHeight="0.0" minWidth="0.0" />
+         </ScrollPane>
+      </VBox>
+   </VBox>
 </AnchorPane>
