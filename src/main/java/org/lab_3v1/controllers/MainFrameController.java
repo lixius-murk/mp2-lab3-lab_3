@@ -34,13 +34,13 @@ public class MainFrameController implements IObserver {
     private Button BresetProgram;
     @FXML
     private Button Bdebug;
-
+    @FXML
+    private Label Lstatistic;
 
 
     private Model model;
     private GridPane allInstructions;
-    private AddInstructionDialog Dadd;
-
+    private MemoryFrameController memoryController;
 
     @FXML
     void initialize() throws InstructionsException {
@@ -51,7 +51,8 @@ public class MainFrameController implements IObserver {
         allInstructions.setVgap(5);
         allInstructions.setHgap(10);
         setRegisterState();
-        initializeMem(); // Initialize memory display directly
+        initializeMem();
+        Lstatistic.setText("-");
         ScrollpaneInstructions.setContent(allInstructions);
 
         BaddInstruction.setOnAction(e -> {
@@ -61,29 +62,65 @@ public class MainFrameController implements IObserver {
                 alert("Add Instruction Error", ex.getMessage());
             }
         });
-        BexecuteInstruction.setOnAction(e -> executeNextInstruction());
+        BexecuteInstruction.setOnAction(e -> {
+            try {
+                executeNextInstruction();
+            } catch (InstructionsException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
         BresetProgram.setOnAction(e -> resetProgram());
         example();
         event();
-        Bdebug.setOnAction(e -> showDebugInfo());
+        Bdebug.setOnAction(e -> {
+            try {
+                showDebugInfo();
+            } catch (InstructionsException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
 
     }
 
-    private void showDebugInfo() {
+    private void showDebugInfo() throws InstructionsException {
         StringBuilder debugInfo = new StringBuilder();
-        debugInfo.append("=== DEBUG INFO ===\n");
         debugInfo.append("Model: ").append(model != null ? "OK" : "NULL").append("\n");
         debugInfo.append("CPU: ").append(model != null && model.getCPU() != null ? "OK" : "NULL").append("\n");
         debugInfo.append("PC: ").append(model != null ? model.getProgramCounter() : "N/A").append("\n");
         debugInfo.append("Instructions: ").append(model != null ? model.getInstructionCount() : "N/A").append("\n");
 
+        if (model != null) {
+            debugInfo.append("\nInstructions list:\n");
+            int i = 0;
+            for (Instructions instr : model) {
+                debugInfo.append(i++).append(": ").append(instr).append("\n");
+            }
+        }
+        if(model!=null){
+            debugInfo.append("\nRegisters\n");
+            debugInfo.append("a: " + Integer.toString(model.getRegisterValue("a")) + "\n");
+            debugInfo.append("b: " + Integer.toString(model.getRegisterValue("b"))+ "\n");
+            debugInfo.append("c: " + Integer.toString(model.getRegisterValue("c"))+ "\n");
+            debugInfo.append("d: " + Integer.toString(model.getRegisterValue("d"))+ "\n");
+            debugInfo.append("flags: " + (model.getCPU().getFlags()).toString()+ "\n");
+
+        }
+
         alert("Debug Info", debugInfo.toString());
     }
+
     private void example() throws InstructionsException {
         try {
             model.addInstruction(InstructCode.INIT, 10, 100);
             model.addInstruction(InstructCode.INIT, 11, 200);
-            System.out.println("Added test instructions");
+            model.addInstruction(InstructCode.LD, "a", 10);
+            model.addInstruction(InstructCode.LD, "b", 11);
+            model.addInstruction(InstructCode.CMP, "a", "b");
+            model.addInstruction(InstructCode.JL, 7);
+            model.addInstruction(InstructCode.PRINT, "a");
+            model.addInstruction(InstructCode.PRINT, "b");
+
+
         } catch (InstructionsException e) {
             e.printStackTrace();
         }
@@ -102,21 +139,26 @@ public class MainFrameController implements IObserver {
             java.net.URL url = getClass().getResource("/org/lab_3v1/MemoryFrame.fxml");
 
             if (url == null) {
+                System.err.println("[MainFrameController] Cannot find MemoryFrame.fxml");
                 return;
             }
+
             FXMLLoader memoryLoader = new FXMLLoader(url);
             Pane memoryPane = memoryLoader.load();
 
-            MemoryFrameController memoryController = memoryLoader.getController();
-            memoryController.setModel(model);
+            this.memoryController = memoryLoader.getController();
+            this.memoryController.setModel(model);
 
             FlowPaneMem.getChildren().clear();
             FlowPaneMem.getChildren().add(memoryPane);
 
+            // Сохраняем контроллер в свойствах pane для доступа
+            memoryPane.getProperties().put("controller", memoryController);
+
         } catch (IOException e) {
             alert("Memory Frame Error", e.getMessage());
         } catch (InstructionsException e) {
-            throw new RuntimeException(e);
+            System.err.println("[MainFrameController] Error setting model to memory controller: " + e.getMessage());
         }
     }
 
@@ -144,17 +186,45 @@ public class MainFrameController implements IObserver {
     private void resetProgram() {
         try {
             model.resetProgram();
+            event();
         } catch (InstructionsException e) {
             alert("Execution Error", e.getMessage());
         }
+
     }
 
-    private void executeNextInstruction() {
+    private void executeNextInstruction() throws InstructionsException {
         try {
-            model.executeNextInstruction();
-        } catch (InstructionsException e) {
-            alert("Execution Error", e.getMessage());
+            int currentPC = model.getCPU().getProgramCounter();
+
+
+            if (model.getInstructionCount() == 0) {
+                alert("Program is empty", "nothing to execute");
+            }
+
+            if (currentPC >= model.getInstructionCount()) {
+                alert("Program is completed", "nothing to execute");
+            }
+
+            Instructions instruction = model.getInstruction(currentPC);
+
+
+            int savedPC = model.getCPU().getProgramCounter();
+
+            model.getCPU().execute(instruction);
+
+
+            //если не jmp,  увеличиваем pc
+            if (model.getCPU().getProgramCounter() == savedPC) {
+                model.getCPU().setProgramCounter(currentPC + 1);
+            }
+            event();
+
+        } catch (Exception e) {
+            //не увеличиваем pc при ошибке
+            throw new InstructionsException("Failed to execute instruction: " + e.getMessage());
         }
+
     }
 
     private void addNewInstruction() throws InstructionsException {
@@ -165,6 +235,7 @@ public class MainFrameController implements IObserver {
             Instructions instruction = result.get();
             model.addInstruction(instruction.getInstructCode(), instruction.getOperands());
         }
+        event();
     }
 
     private void alert(String title, String message) {
@@ -215,10 +286,28 @@ public class MainFrameController implements IObserver {
         }
     }
 
+    private void getStatistics() {
+         Lstatistic.setText(model.getMaxInstr(3).toString());
+    }
+
+
     @Override
     public void event() {
         upgradeInstructions();
         highlightCurInstruction();
-        //память и регистры обновляются через своих наблюдателей
+
+        if (memoryController != null) {
+            try {
+                memoryController.event();
+            } catch (Exception e) {
+                System.err.println("[MainFrameController] Error updating memory: " + e.getMessage());
+            }
+        } else {
+            //если начало программы - загружаем контроллер
+            setMemoryState();
+        }
+        getStatistics();
     }
-}
+
+    //память и регистры обновляются через своих наблюдателей
+};

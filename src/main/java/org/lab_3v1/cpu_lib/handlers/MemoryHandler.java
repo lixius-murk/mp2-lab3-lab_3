@@ -26,8 +26,10 @@ public class MemoryHandler extends Handler {
     }
 
     private void handleInit(Instructions instruction, CPU cpu) {
+
         int address = (Integer) instruction.getOperand(0);
         int value = (Integer) instruction.getOperand(1);
+
         cpu.getMemory().write(address, value);
     }
 

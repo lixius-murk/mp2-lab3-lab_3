@@ -10,6 +10,7 @@ import org.lab_3v1.model.IObserver;
 import org.lab_3v1.model.Model;
 
 public class MemoryFrameController implements IObserver {
+
     @FXML
     private FlowPane FlowPaneMem;
 
@@ -18,35 +19,44 @@ public class MemoryFrameController implements IObserver {
     public void setModel(Model model) throws InstructionsException {
         this.model = model;
         this.model.addObserver(this);
-        event(); // Initial update
+        event();
     }
 
     @FXML
     void initialize() {
-        // Инициализация FlowPane
         FlowPaneMem.setHgap(5);
         FlowPaneMem.setVgap(5);
         FlowPaneMem.setPadding(new javafx.geometry.Insets(5));
     }
 
     @Override
-    public void event() throws InstructionsException {
-        updateMemory();
+    public void event() {
+        try {
+            updateMemory();
+        } catch (Exception e) {
+            System.err.println("[MemoryFrameController] Error updating memory: " + e.getMessage());
+        }
     }
 
     private void updateMemory() {
-        FlowPaneMem.getChildren().clear();
-
-        if (model == null || model.getCPU() == null || model.getCPU().getMemory() == null) {
-            System.out.println("Memory display: model or CPU memory is null");
+        if (model == null) {
             return;
         }
+        if (model.getCPU() == null) {
+            return;
+        }
+        if (model.getCPU().getMemory() == null) {
+            return;
+        }
+
+        FlowPaneMem.getChildren().clear();
 
         for (int i = 0; i < 100; i++) {
             int value = model.getCPU().getMemory().read(i);
             VBox memoryCell = createMemoryCell(i, value);
             FlowPaneMem.getChildren().add(memoryCell);
         }
+
     }
 
     private VBox createMemoryCell(int address, int value) {
@@ -61,6 +71,8 @@ public class MemoryFrameController implements IObserver {
         Label valueLabel = new Label(String.valueOf(value));
         valueLabel.setFont(Font.font(12));
         valueLabel.setStyle("-fx-font-weight: bold;");
+
+
 
         cell.getChildren().addAll(addressLabel, valueLabel);
         return cell;

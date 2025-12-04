@@ -7,6 +7,7 @@ import org.lab_3v1.cpu_lib.instructions.Instructions;
 import org.lab_3v1.cpu_lib.instructions.InstructionsException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Model implements Iterable<Instructions> {
     private CPU cpu = new CPU();
@@ -33,6 +34,12 @@ public class Model implements Iterable<Instructions> {
         for (IObserver observer : observers) {
             observer.event();
         }
+    }
+    public List<Map.Entry<Instructions, Integer>> getMaxInstr(int amount){
+        return instructionCountMap.entrySet().stream()
+                .sorted(Map.Entry.<Instructions, Integer>comparingByValue().reversed())
+                .limit(amount)
+                .collect(Collectors.toList());
     }
 
     public void addListener(IObserver observer) {
@@ -72,11 +79,13 @@ public class Model implements Iterable<Instructions> {
 
     public void addInstruction(InstructCode code, Object... operands) throws InstructionsException {
         Object[] processedOperands = processOperands(code, operands);
-        validateRegisters(code, processedOperands);
+        validateInstruction(code, processedOperands);
 
         Instructions instr = new Instructions(code, processedOperands);
         instructionsList.add(instr);
         instructionCountMap.merge(instr, 1, Integer::sum);
+
+        //cpu.setProgramCounter(0);
 
         notifyObservers();
     }
@@ -88,7 +97,118 @@ public class Model implements Iterable<Instructions> {
         }
     }
 
+    private void validateInstruction(InstructCode code, Object[] operands) throws InstructionsException {
+        switch (code) {
+            case INIT:
+                //INIT address, val
+                if (operands.length != 2) {
+                    throw new InstructionsException("INIT requires 2 operands: address and value");
+                }
+                if (!(operands[0] instanceof Integer)) {
+                    throw new InstructionsException("INIT first operand must be a memory address (number)");
+                }
 
+                int address = (Integer) operands[0];
+                if (address < 0 || address >= 1024) {
+                    throw new InstructionsException("Address out of range: " + address);
+                }
+
+                if (!(operands[1] instanceof Integer)) {
+                    throw new InstructionsException("Second operand must be a number");
+                }
+                break;
+
+            case LD:
+                //LD register, address
+                if (operands.length != 2) {
+                    throw new InstructionsException("LD requires 2 operands: register and address");
+                }
+
+                if (!(operands[0] instanceof String)) {
+                    throw new InstructionsException("LD first operand must be a register (a,b,c,d)");
+                }
+
+                String loadReg = (String) operands[0];
+                if (!loadReg.matches("[abcd]")) {
+                    throw new InstructionsException("Register must be a,b,c,d, got: " + loadReg);
+                }
+
+                if (!(operands[1] instanceof Integer)) {
+                    throw new InstructionsException("Second operand must be a memory address (number)");
+                }
+
+                int loadAddr = (Integer) operands[1];
+                if (loadAddr < 0 || loadAddr >= 1024) {
+                    throw new InstructionsException("LD address out of range: " + loadAddr);
+                }
+                break;
+
+            case ST:
+                //ST register, address
+                if (operands.length != 2) {
+                    throw new InstructionsException("STORE requires 2 operands: register and address");
+                }
+
+                if (!(operands[0] instanceof String)) {
+                    throw new InstructionsException("STORE first operand must be a register (a,b,c,d)");
+                }
+
+                String storeReg = (String) operands[0];
+                if (!storeReg.matches("[abcd]")) {
+                    throw new InstructionsException("Register must be a,b,c,d, got: " + storeReg);
+                }
+
+                if (!(operands[1] instanceof Integer)) {
+                    throw new InstructionsException("Operand must be a memory address (number)");
+                }
+
+                int storeAddr = (Integer) operands[1];
+                if (storeAddr < 0 || storeAddr >= 1024) {
+                    throw new InstructionsException("ST address out of range: " + storeAddr);
+                }
+                break;
+
+            case DIV, MULT, ADD, SUB, MV:
+                if (operands.length != 2) {
+                    throw new InstructionsException(code + " Requires 2 operands: register and register/value");
+                }
+
+                // оба операнда - регистры
+                if (!(operands[0] instanceof String)) {
+                    throw new InstructionsException(code + " first operand must be a register (a,b,c,d)");
+                }
+
+                String reg1 = (String) operands[0];
+                if (!reg1.matches("[abcd]")) {
+                    throw new InstructionsException(code + " register must be a,b,c,d, got: " + reg1);
+                }
+                break;
+
+            case JMP, JG, JE, JL:
+                //JMP address
+                if (operands.length != 1) {
+                    throw new InstructionsException(code + " Requires 1 operand: address");
+                }
+                if ((Integer)operands[0] < 0 || (Integer)operands[0] >= 1024) {
+                    throw new InstructionsException("JMP address out of range: " + operands[0]);
+                }
+                break;
+            case CMP:
+                //CMP reg1, reg2
+                if (operands.length != 2) {
+                    throw new InstructionsException(code + " Requires 2 operand: reg1, reg2");
+                }
+                String reg_1 = (String) operands[0];
+                if (!reg_1.matches("[abcd]")) {
+                    throw new InstructionsException("Register must be a,b,c,d, got: " + reg_1);
+                }
+                String reg_2 = (String) operands[1];
+                if (!reg_2.matches("[abcd]")) {
+                    throw new InstructionsException("Register must be a,b,c,d, got: " + reg_2);
+                }
+                break;
+        }
+    }
 
     public Instructions getInstruction(int index) {
         if (index >= 0 && index < instructionsList.size()) {
@@ -105,9 +225,34 @@ public class Model implements Iterable<Instructions> {
         }
 
         Instructions instruction = instructionsList.get(currentPC);
+
+        int savedPC = cpu.getProgramCounter();
+
         cpu.execute(instruction);
 
-        cpu.setProgramCounter(currentPC + 1);
+        //если не JMP, увеличиваем pc
+        if (cpu.getProgramCounter() == savedPC) {
+            cpu.setProgramCounter(currentPC + 1);
+        }
+
+        notifyObservers();
+    }
+    public void executeInstruction(int index) throws InstructionsException {
+        int savedPC = cpu.getProgramCounter();
+        cpu.setProgramCounter(index);
+
+        if (index >= instructionsList.size()) {
+            cpu.setProgramCounter(savedPC);
+            throw new InstructionsException("PC out of range");
+        }
+
+        Instructions instruction = instructionsList.get(index);
+
+        cpu.execute(instruction);
+        if (cpu.getProgramCounter() == index) {
+            cpu.setProgramCounter(index + 1);
+        }
+
         notifyObservers();
     }
 
@@ -160,19 +305,6 @@ public class Model implements Iterable<Instructions> {
         return res;
     }
 
-    private void validateRegisters(InstructCode code, Object[] operands) throws InstructionsException {
-        String[] validRegisters = {"a", "b", "c", "d"};
-        Set<String> validSet = Set.of(validRegisters);
-
-        for (Object operand : operands) {
-            if (operand instanceof String) {
-                String register = (String) operand;
-                if (!validSet.contains(register)) {
-                    throw new InstructionsException("Invalid register: " + register);
-                }
-            }
-        }
-    }
 
 
     public Instructions[] toArray() {
@@ -209,17 +341,5 @@ public class Model implements Iterable<Instructions> {
         return cpu.getMemory().read(i);
     }
 
-    public void executeInstruction(int index) throws InstructionsException {
-        int currentPC = index;
 
-        if (currentPC >= instructionsList.size()) {
-            throw new InstructionsException("PC out of range");
-        }
-
-        Instructions instruction = instructionsList.get(currentPC);
-        cpu.execute(instruction);
-
-        cpu.setProgramCounter(currentPC + 1);
-        notifyObservers();
-    }
 }

@@ -12,15 +12,27 @@
 
          <!--регистры-->
          <VBox spacing="5.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
-            <Label style="-fx-font-size: 16pt; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Регистры" />
-            <Pane fx:id="PaneRegisterState" prefHeight="150.0" prefWidth="250.0" />
+            <Label prefWidth="85.0" text="Регистры">
+               <font>
+                  <Font size="20.0" />
+               </font></Label>
+            <Pane fx:id="PaneRegisterState" prefHeight="69.0" prefWidth="252.0" />
+            <Label text="Статистика">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label fx:id="Lstatistic" alignment="TOP_LEFT" prefHeight="42.0" prefWidth="250.0" text="-" />
          </VBox>
 
          <!--  память -->
          <VBox prefWidth="500.0" spacing="5.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
             <HBox alignment="CENTER_LEFT" spacing="10.0">
-               <Label style="-fx-font-size: 16pt; -fx-font-weight: bold; -fx-text-fill: #34495e;" text="Память (0-99)" />
-               <Label style="-fx-font-size: 10pt; -fx-text-fill: #7f8c8d;" text="10x10 ячеек" />
+               <Label text="Память (0-99)">
+                  <font>
+                     <Font size="16.0" />
+                  </font></Label>
+               <Label text="10x10 ячеек" />
             </HBox>
             <ScrollPane prefHeight="150.0" prefWidth="480.0" style="-fx-background-color: white; -fx-border-color: #bdc3c7;">
                <FlowPane fx:id="FlowPaneMem" prefWidth="480.0" />

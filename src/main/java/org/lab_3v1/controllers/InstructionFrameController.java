@@ -40,37 +40,44 @@ public class InstructionFrameController implements IObserver {
 
     @FXML
     void initialize() {
-        Bdelete.setOnAction(event -> {
-            try {
-                model.removeInstruction(index);
-            } catch (InstructionsException e) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Issue removing instruction", ButtonType.OK);
-                alert.setHeaderText("Issue removing instruction");
-                alert.showAndWait();            }
-        });
         Bnext.setOnAction(event -> {
             try {
-                model.setProgramCounter(index++);
+                // Устанавливаем PC на следующий индекс
+                model.setProgramCounter(model.getProgramCounter() + 1);
+                System.out.println("[InstructionFrame] Next clicked, PC set to: " + model.getProgramCounter());
             } catch (InstructionsException e) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Issue removing instruction", ButtonType.OK);
-                alert.setHeaderText("Issue removing instruction");
-                alert.showAndWait();            }
+                System.err.println("[ERROR] " + e.getMessage());
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, e.getMessage(), ButtonType.OK);
+                alert.setHeaderText("Issue setting PC");
+                alert.showAndWait();
+            }
         });
+
         Bprev.setOnAction(event -> {
             try {
-                model.setProgramCounter(index--);
+                if (model.getProgramCounter() > 0) {
+                    model.setProgramCounter(model.getProgramCounter() - 1);
+                    System.out.println("[InstructionFrame] Prev clicked, PC set to: " + model.getProgramCounter());
+                }
             } catch (InstructionsException e) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Issue removing instruction", ButtonType.OK);
-                alert.setHeaderText("Issue removing instruction");
-                alert.showAndWait();            }
+                System.err.println("[ERROR] " + e.getMessage());
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, e.getMessage(), ButtonType.OK);
+                alert.setHeaderText("Issue setting PC");
+                alert.showAndWait();
+            }
         });
+
         Bexecute.setOnAction(event -> {
             try {
+                System.out.println("[InstructionFrame] Execute clicked for index: " + index);
                 model.executeInstruction(index);
+                System.out.println("[InstructionFrame] After execution, PC = " + model.getProgramCounter());
             } catch (InstructionsException e) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION, "Issue removing instruction", ButtonType.OK);
-                alert.setHeaderText("Issue removing instruction");
-                alert.showAndWait();            }
+                System.err.println("[ERROR] " + e.getMessage());
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, e.getMessage(), ButtonType.OK);
+                alert.setHeaderText("Issue executing instruction");
+                alert.showAndWait();
+            }
         });
 
     }
