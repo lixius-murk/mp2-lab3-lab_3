@@ -238,6 +238,7 @@ public class MainFrameController implements IObserver {
         event();
     }
 
+
     private void alert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
         alert.setTitle(title);

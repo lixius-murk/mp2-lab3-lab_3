@@ -25,6 +25,28 @@ public class Model implements Iterable<Instructions> {
             observers.add(observer);
         }
     }
+    public void switchInstructins(int ind1, int ind2) throws InstructionsException {
+        if (ind1 == ind2) {
+            return;
+        }
+        if (ind1 < 0 || ind1 >= instructionsList.size() ||
+                ind2 < 0 || ind2 >= instructionsList.size()) {
+            throw new InstructionsException("Invalid instruction indices for swapping");
+        }
+
+
+        System.out.println("[Model] Swapping instructions at indices " + ind1 + " and " + ind2);
+        Instructions instr1 = instructionsList.get(ind1);
+        Instructions instr2 = instructionsList.get(ind2);
+
+        instructionsList.set(ind1, instr2);
+        instructionsList.set(ind2, instr1);
+
+
+        notifyObservers();
+
+    }
+
 
     public void removeObserver(IObserver observer) {
         observers.remove(observer);

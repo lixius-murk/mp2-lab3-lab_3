@@ -42,38 +42,28 @@ public class InstructionFrameController implements IObserver {
     void initialize() {
         Bnext.setOnAction(event -> {
             try {
-                // Устанавливаем PC на следующий индекс
-                model.setProgramCounter(model.getProgramCounter() + 1);
-                System.out.println("[InstructionFrame] Next clicked, PC set to: " + model.getProgramCounter());
+                model.switchInstructins(index++, index);
             } catch (InstructionsException e) {
-                System.err.println("[ERROR] " + e.getMessage());
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, e.getMessage(), ButtonType.OK);
-                alert.setHeaderText("Issue setting PC");
+                alert.setHeaderText("Issue setting instruction");
                 alert.showAndWait();
             }
         });
 
         Bprev.setOnAction(event -> {
             try {
-                if (model.getProgramCounter() > 0) {
-                    model.setProgramCounter(model.getProgramCounter() - 1);
-                    System.out.println("[InstructionFrame] Prev clicked, PC set to: " + model.getProgramCounter());
-                }
+                model.switchInstructins(index--, index);
             } catch (InstructionsException e) {
-                System.err.println("[ERROR] " + e.getMessage());
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, e.getMessage(), ButtonType.OK);
-                alert.setHeaderText("Issue setting PC");
+                alert.setHeaderText("Issue setting instruction");
                 alert.showAndWait();
             }
         });
 
         Bexecute.setOnAction(event -> {
             try {
-                System.out.println("[InstructionFrame] Execute clicked for index: " + index);
                 model.executeInstruction(index);
-                System.out.println("[InstructionFrame] After execution, PC = " + model.getProgramCounter());
             } catch (InstructionsException e) {
-                System.err.println("[ERROR] " + e.getMessage());
                 Alert alert = new Alert(Alert.AlertType.INFORMATION, e.getMessage(), ButtonType.OK);
                 alert.setHeaderText("Issue executing instruction");
                 alert.showAndWait();
