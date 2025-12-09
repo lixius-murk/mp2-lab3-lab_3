@@ -1,18 +1,26 @@
+
 package org.lab_3v1.model;
 
+import org.lab_3v1.InstructionListDAO_JDBC;
+import org.lab_3v1.InstructionsListDAO;
 import org.lab_3v1.cpu_lib.Executor;
+import org.lab_3v1.cpu_lib.Program;
 import org.lab_3v1.cpu_lib.cpu.CPU;
 import org.lab_3v1.cpu_lib.instructions.InstructCode;
 import org.lab_3v1.cpu_lib.instructions.Instructions;
 import org.lab_3v1.cpu_lib.instructions.InstructionsException;
 
+import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Model implements Iterable<Instructions> {
+
+
+public class  Model implements Iterable<Instructions> {
     private CPU cpu = new CPU();
     private Executor executor = new Executor(cpu);
-    private List<Instructions> instructionsList = new ArrayList<>();
+    //private List<Instructions> instructionsList = new ArrayList<>();
+    private InstructionsListDAO instructionsList = new InstructionListDAO_JDBC();
     private Map<Instructions, Integer> instructionCountMap = new HashMap<>();
 
     private List<IObserver> observers = new ArrayList<>();
@@ -283,6 +291,10 @@ public class Model implements Iterable<Instructions> {
         notifyObservers();
     }
 
+    private Instructions[] toArray() {
+        return instructionsList.toArray();
+    }
+
     public void resetProgram() throws InstructionsException {
         clearInstructions();
         cpu.setProgramCounter(0);
@@ -328,11 +340,6 @@ public class Model implements Iterable<Instructions> {
     }
 
 
-
-    public Instructions[] toArray() {
-        return instructionsList.toArray(new Instructions[0]);
-    }
-
     public int getInstructionCount() {
         return instructionsList.size();
     }
@@ -365,3 +372,4 @@ public class Model implements Iterable<Instructions> {
 
 
 }
+

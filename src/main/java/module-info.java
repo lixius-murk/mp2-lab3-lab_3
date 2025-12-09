@@ -9,6 +9,7 @@ module org.lab_3v1 {
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
     requires com.fasterxml.jackson.databind;
+    requires java.sql;
 
     opens org.lab_3v1 to javafx.fxml;
     exports org.lab_3v1;

@@ -151,8 +151,6 @@ public class MainFrameController implements IObserver {
 
             FlowPaneMem.getChildren().clear();
             FlowPaneMem.getChildren().add(memoryPane);
-
-            // Сохраняем контроллер в свойствах pane для доступа
             memoryPane.getProperties().put("controller", memoryController);
 
         } catch (IOException e) {
