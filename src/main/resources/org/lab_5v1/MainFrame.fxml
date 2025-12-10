@@ -16,13 +16,16 @@
                <font>
                   <Font size="20.0" />
                </font></Label>
-            <Pane fx:id="PaneRegisterState" prefHeight="69.0" prefWidth="252.0" />
+            <Pane fx:id="PaneRegisterState" prefHeight="44.0" prefWidth="252.0" />
             <Label text="Статистика">
                <font>
                   <Font size="20.0" />
                </font>
             </Label>
-            <Label fx:id="Lstatistic" alignment="TOP_LEFT" prefHeight="42.0" prefWidth="250.0" text="-" />
+            <Label fx:id="Lstatistic" alignment="TOP_LEFT" prefHeight="61.0" prefWidth="250.0" text="-">
+               <font>
+                  <Font size="15.0" />
+               </font></Label>
          </VBox>
 
          <!--  память -->

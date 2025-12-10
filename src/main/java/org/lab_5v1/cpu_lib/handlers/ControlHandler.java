@@ -34,28 +34,28 @@ public class ControlHandler extends Handler {
 
 
     public void handleJMP(Instructions instruction, CPU cpu){
-        Object[] operands = instruction.getOperands();
-        int address = (int) operands[0];
+        int address =  Integer.parseInt(instruction.getOperand1());
         cpu.setProgramCounter(address);
     }
+    //ZF
     public void handleJE(Instructions instruction, CPU cpu){
-        Object[] operands = instruction.getOperands();
         FlagRegister flagRegister = cpu.getFlags();
-        int address = (int) operands[0];
+        int address =  Integer.parseInt(instruction.getOperand1());
         if (flagRegister.isZF()) {
             cpu.setProgramCounter(address);}
     }
+    //SF == OF && !(ZF)
     public void handleJG(Instructions instruction, CPU cpu){
-        Object[] operands = instruction.getOperands();
         FlagRegister flagRegister = cpu.getFlags();
-        int address = (int) operands[0];
+        int address =  Integer.parseInt(instruction.getOperand1());
         if (flagRegister.isSF() == flagRegister.isOF() && !flagRegister.isZF()) {
             cpu.setProgramCounter(address );}
     }
+
+    //SF!=OF
     public void handleJL(Instructions instruction, CPU cpu){
-        Object[] operands = instruction.getOperands();
         FlagRegister flagRegister = cpu.getFlags();
-        int address = (int) operands[0];
+        int address =  Integer.parseInt(instruction.getOperand1());
         if (flagRegister.isSF() != flagRegister.isOF()) {
             cpu.setProgramCounter(address );}
     }

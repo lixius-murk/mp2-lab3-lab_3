@@ -28,9 +28,8 @@ public class TwoRegistersHandler extends Handler {
     }
 
     private void handleCMP(Instructions instruction, CPU cpu) throws InstructionsException {
-        Object[] operands = instruction.getOperands();
-        String source1 = (String) operands[0];
-        String source2 = (String) operands[1];
+        String source1 = instruction.getOperand1();
+        String source2 = instruction.getOperand2();
 
         int val1 = cpu.getRegister().getValue(source1, 0);
         int val2 = cpu.getRegister().getValue(source2, 0);
@@ -58,10 +57,9 @@ public class TwoRegistersHandler extends Handler {
 
 
     private void handleArythm(Instructions instruction, CPU cpu) throws InstructionsException {
-        Object[] operands = instruction.getOperands();
 
-        String dest = (String) operands[0];
-        String source = (String) operands[1];
+        String dest = instruction.getOperand1();
+        String source = instruction.getOperand2();
         int val1 = cpu.getRegister().getValue(dest, 0);
         int val2 = cpu.getRegister().getValue(source, 0);
 
@@ -84,8 +82,8 @@ public class TwoRegistersHandler extends Handler {
     }
 
     private void handleMv(Instructions instruction, CPU cpu) throws InstructionsException {
-        String dest = (String) instruction.getOperand(0);
-        String source = (String) instruction.getOperand(1);
+        String dest = instruction.getOperand1();
+        String source = instruction.getOperand2();
 
         int value = cpu.getRegister().getValue(source, 0);
         cpu.getRegister().setValue(dest, 0, value);

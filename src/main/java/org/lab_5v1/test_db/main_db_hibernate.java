@@ -9,7 +9,7 @@ public class main_db_hibernate {
     public static void main(String[] args) {
         InstructionsDAO_Hibernate dao = new InstructionsDAO_Hibernate();
 
-        Instructions testInstr = new Instructions(InstructCode.INIT, 50, 888);
+        Instructions testInstr = new Instructions(InstructCode.INIT, "50", "88");
         dao.add(testInstr);
 
         for (Instructions instr : dao) {

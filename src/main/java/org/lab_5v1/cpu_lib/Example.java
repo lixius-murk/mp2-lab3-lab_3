@@ -9,12 +9,12 @@ public class Example {
         CPU cpu = new CPU();
         Executor executor = new Executor(cpu);
         Program program = new Program();
-        program.add(InstructCode.INIT, 0, 10);
-        program.add(InstructCode.INIT, 1, 20);
-        program.add(InstructCode.LD, "a", 0);
-        program.add(InstructCode.LD, "b", 1);
+        program.add(InstructCode.INIT, "0", "10");
+        program.add(InstructCode.INIT, "1", "20");
+        program.add(InstructCode.LD, "a", "0");
+        program.add(InstructCode.LD, "b", "1");
         program.add(InstructCode.CMP, "a", "b");
-        program.add(InstructCode.JL, 3);
+        program.add(InstructCode.JL, "3");
 
         program.add(InstructCode.ADD, "a","b");
         program.add(InstructCode.ADD, "a","b");

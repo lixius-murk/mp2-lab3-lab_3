@@ -17,7 +17,10 @@ import org.lab_5v1.model.IObserver;
 import org.lab_5v1.model.Model;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 
 public class MainFrameController implements IObserver {
     @FXML
@@ -111,12 +114,12 @@ public class MainFrameController implements IObserver {
 
     private void example() throws InstructionsException {
         try {
-            model.addInstruction(InstructCode.INIT, 10, 100);
-            model.addInstruction(InstructCode.INIT, 11, 200);
-            model.addInstruction(InstructCode.LD, "a", 10);
-            model.addInstruction(InstructCode.LD, "b", 11);
+            model.addInstruction(InstructCode.INIT, "10", "100");
+            model.addInstruction(InstructCode.INIT, "11", "200");
+            model.addInstruction(InstructCode.LD, "a", "10");
+            model.addInstruction(InstructCode.LD, "b", "11");
             model.addInstruction(InstructCode.CMP, "a", "b");
-            model.addInstruction(InstructCode.JL, 7);
+            model.addInstruction(InstructCode.JL, "7");
             model.addInstruction(InstructCode.PRINT, "a");
             model.addInstruction(InstructCode.PRINT, "b");
 
@@ -231,7 +234,7 @@ public class MainFrameController implements IObserver {
 
         if (result.isPresent()) {
             Instructions instruction = result.get();
-            model.addInstruction(instruction.getInstructCode(), instruction.getOperands());
+            model.addInstruction(instruction.getInstructCode(), instruction.getOperand1(), instruction.getOperand2());
         }
         event();
     }
@@ -285,10 +288,30 @@ public class MainFrameController implements IObserver {
         }
     }
 
+//    private void getStatistics() {
+//         Lstatistic.setText(model.getMaxInstr(3).toString());
+//    }
     private void getStatistics() {
-         Lstatistic.setText(model.getMaxInstr(3).toString());
-    }
+        List<Map.Entry<Instructions, Integer>> topInstructions = model.getMaxInstr(3);
 
+        if (topInstructions.isEmpty()) {
+            Lstatistic.setText("No instructions");
+            return;
+        }
+
+        StringJoiner sj = new StringJoiner("\n");
+
+        for (Map.Entry<Instructions, Integer> entry : topInstructions) {
+            Instructions instr = entry.getKey();
+            sj.add(String.format("%s %s %s: %d",
+                    instr.getInstructCode(),
+                    instr.getOperand1(),
+                    instr.getOperand2(),
+                    entry.getValue()));
+        }
+
+        Lstatistic.setText(sj.toString());
+    }
 
     @Override
     public void event() {
@@ -299,7 +322,7 @@ public class MainFrameController implements IObserver {
             try {
                 memoryController.event();
             } catch (Exception e) {
-                System.err.println("[MainFrameController] Error updating memory: " + e.getMessage());
+                System.err.println("Error updating memory: " + e.getMessage());
             }
         } else {
             //если начало программы - загружаем контроллер

@@ -81,21 +81,6 @@ public class InstructionsDAO_Hibernate extends InstructionsListDAO {
         }
     }
 
-    @Override
-    public void removenstr(Instructions instr) {
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            Transaction transaction = session.beginTransaction();
-            session.remove(instr);
-            transaction.commit();
-
-            // Обновляем кэш
-            cache.remove(instr);
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @Override
     public int size() {
@@ -122,17 +107,15 @@ public class InstructionsDAO_Hibernate extends InstructionsListDAO {
             try (Session session = HibernateUtil.getSessionFactory().openSession()) {
                 Transaction transaction = session.beginTransaction();
 
-                // Получаем существующую инструкцию
+                //обновляем закэшированнные инструкции
                 Instructions existing = cache.get(index);
                 if (existing != null) {
-                    // Копируем данные из новой инструкции
-                    existing.setType(instruction.getInstructCode());
-                    existing.setOperands(instruction.getOperands());
+                    existing.setInstructCode(instruction.getInstructCode());
+                    existing.setOperand1(instruction.getOperand1());
+                    existing.setOperand2(instruction.getOperand2());
 
                     session.merge(existing);
                     transaction.commit();
-
-                    // Обновляем кэш
                     cache.set(index, existing);
 
                 }
@@ -159,11 +142,61 @@ public class InstructionsDAO_Hibernate extends InstructionsListDAO {
     public void remove(int index) {
         if (index >= 0 && index < cache.size()) {
             Instructions instr = cache.get(index);
-            if (instr != null) {
-                removenstr(instr);
+            if (instr != null && instr.getId() != null) {
+                try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+                    Transaction transaction = session.beginTransaction();
+
+                    // Загружаем инструкцию из БД для удаления
+                    Instructions instrToDelete = session.getReference(Instructions.class, instr.getId());
+                    if (instrToDelete != null) {
+                        session.remove(instrToDelete);
+                        transaction.commit();
+
+                        // Обновляем кэш
+                        cache.remove(index);
+                        System.out.println("[HibernateDAO] Removed instruction with id: " + instr.getId());
+                    } else {
+                        transaction.rollback();
+                        System.out.println("[HibernateDAO] Instruction not found in database");
+                    }
+
+                } catch (Exception e) {
+                    System.err.println("[HibernateDAO] Error removing instruction: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                System.err.println("[HibernateDAO] Cannot remove instruction without ID");
             }
         } else {
-            throw new RuntimeException("Index: " + index);
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + cache.size());
+        }
+    }
+
+    // Также исправьте метод removenstr
+    @Override
+    public void removenstr(Instructions instr) {
+        if (instr != null && instr.getId() != null) {
+            try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+                Transaction transaction = session.beginTransaction();
+
+                // Загружаем инструкцию из БД
+                Instructions instrToDelete = session.getReference(Instructions.class, instr.getId());
+                if (instrToDelete != null) {
+                    session.remove(instrToDelete);
+                    transaction.commit();
+
+                    // Удаляем из кэша
+                    cache.removeIf(i -> i.getId() != null && i.getId().equals(instr.getId()));
+
+                    System.out.println("[HibernateDAO] Removed instruction: " + instr);
+                } else {
+                    transaction.rollback();
+                }
+
+            } catch (Exception e) {
+                System.err.println("[HibernateDAO] Error removing instruction: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 

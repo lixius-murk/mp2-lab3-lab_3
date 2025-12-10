@@ -27,22 +27,22 @@ public class MemoryHandler extends Handler {
 
     private void handleInit(Instructions instruction, CPU cpu) throws InstructionsException {
 
-        int address = (Integer) instruction.getOperand(0);
-        int value = (Integer) instruction.getOperand(1);
+        int address = Integer.parseInt(instruction.getOperand1());
+        int value = Integer.parseInt(instruction.getOperand2());
 
         cpu.getMemory().write(address, value);
     }
 
     private void handleStore(Instructions instruction, CPU cpu) throws InstructionsException {
-        String register = (String) instruction.getOperand(0);
-        int address = (Integer) instruction.getOperand(1);
+        String register =instruction.getOperand1();
+        int address = Integer.parseInt(instruction.getOperand2());;
         int value = cpu.getRegister().getValue(register, 0);
         cpu.getMemory().write(address, value);
     }
 
     private void handleLoad(Instructions instruction, CPU cpu) throws InstructionsException {
-        String register = (String) instruction.getOperand(0);
-        int address = (Integer) instruction.getOperand(1);
+        String register = instruction.getOperand1();
+        int address = Integer.parseInt(instruction.getOperand2());
         int value = cpu.getMemory().read(address);
         cpu.getRegister().setValue(register, 0, value);
         cpu.setSourseReg1(register);

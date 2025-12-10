@@ -41,7 +41,7 @@ public class Program implements Iterable<Instructions> {
         dao.setInstructionsList(instructionsList);
     }
 
-    public void add(InstructCode code, Object... operands) {
+    public void add(InstructCode code, String... operands) {
         Instructions instr = new Instructions(code, operands);
         instructionsList.add(instr);
         instructionCountMap.merge(instr, 1, Integer::sum);
@@ -147,16 +147,15 @@ public class Program implements Iterable<Instructions> {
 
     private Stream<Integer> extractMemoryAddressesFromInstruction(Instructions instructions) {
         List<Integer> addresses = new ArrayList<>();
-        Object[] operands = instructions.getOperands();
         switch (instructions.getInstructCode()) {
             case ST:
-                addresses.add((Integer) operands[1]);
+                addresses.add(Integer.valueOf(instructions.getOperand2()));
                 break;
             case LD:
-                addresses.add((Integer) operands[1]);
+                addresses.add(Integer.valueOf(instructions.getOperand2()));
                 break;
             case INIT:
-                addresses.add((Integer) operands[0]);
+                addresses.add(Integer.valueOf(instructions.getOperand1()));
                 break;
 
         }

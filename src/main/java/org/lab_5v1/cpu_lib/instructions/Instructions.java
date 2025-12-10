@@ -2,6 +2,7 @@ package org.lab_5v1.cpu_lib.instructions;
 
 import jakarta.persistence.*;
 import java.util.Arrays;
+import java.util.Objects;
 
 @Entity
 @Table(name = "instructions_table")
@@ -22,9 +23,7 @@ public class Instructions {
     @Column(name = "operand2")
     private String operand2;
 
-    private Object operands;
 
-    // Конструкторы
     public Instructions() {
         this.type = InstructCode.INIT;
         this.operand1 = new String(" ");
@@ -32,107 +31,72 @@ public class Instructions {
 
     }
 
-    public Instructions(InstructCode type, Object... operands) {
+    public Instructions(InstructCode type, String... operands) {
         this.type = type;
-        this.operands = operands != null ? operands : new Object[0];
-        // Автоматически преобразуем операнды в строки
-        if (operands != null && operands.length > 0) {
-            this.operand1 = operands[0] != null ? operands[0].toString() : null;
-            if (operands.length > 1) {
-                this.operand2 = operands[1] != null ? operands[1].toString() : null;
-            }
+
+        if (operands.length > 0 && operands[0] != null) {
+            this.operand1 = operands[0];
+        } else {
+            this.operand1 = "";
+        }
+
+        if (operands.length > 1 && operands[1] != null) {
+            this.operand2 = operands[1];
+        } else {
+            this.operand2 = "";
         }
     }
 
-    // Геттер для операндов (ленивая загрузка)
-    public Object[] getOperands() {
-        if (operands == null) {
-            // Если operands не инициализированы, создаем из строк
-            int count = 0;
-            if (operand1 != null) count++;
-            if (operand2 != null) count++;
-
-            operands = new Object[count];
-            if (operand1 != null) {
-                operands[0] = parseOperand(operand1);
-            }
-            if (operand2 != null) {
-                operands[count > 1 ? 1 : 0] = parseOperand(operand2);
-            }
-        }
-        return operands != null ? operands : new Object[0];
-    }
-
-    // Простой парсер операнда
-    private Object parseOperand(String str) {
+    /*private Object parseOperand(String str) {
         if (str == null || str.equals("null")) return null;
         try {
+            //проверяем числа
             return Integer.parseInt(str);
         } catch (NumberFormatException e) {
-            // Проверяем, является ли регистром
+            //проверяем региср
             if (str.matches("[abcd]")) {
                 return str;
             }
             return str;
         }
-    }
+    }*/
 
-    // Остальные геттеры и сеттеры
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
-    public InstructCode getType() { return type; }
-    public void setType(InstructCode type) { this.type = type; }
+    public InstructCode getInstructCode() { return type; }
+    public void setInstructCode(InstructCode type) { this.type = type; }
 
     public String getOperand1() { return operand1; }
     public void setOperand1(String operand1) {
         this.operand1 = operand1;
-        this.operands = null; // Сбрасываем кэш при изменении
     }
 
     public String getOperand2() { return operand2; }
     public void setOperand2(String operand2) {
         this.operand2 = operand2;
-        this.operands = null; // Сбрасываем кэш при изменении
     }
 
-    public InstructCode getInstructCode() { return type; }
-
-    public void setOperands(Object[] operands) {
-        this.operands = operands;
-        if (operands != null) {
-            this.operand1 = operands.length > 0 && operands[0] != null ? operands[0].toString() : null;
-            this.operand2 = operands.length > 1 && operands[1] != null ? operands[1].toString() : null;
-        }
-    }
-
-    public Object getOperand(int index) throws InstructionsException {
-        Object[] ops = getOperands();
-        if (index < 0 || index >= ops.length) {
-            throw new InstructionsException("Error getting operands");
-        }
-        return ops[index];
-    }
 
     @Override
     public String toString() {
-        return "Instructions{" +
-                "id=" + id +
-                ", type=" + type +
-                ", operands=" + Arrays.toString(getOperands()) +
-                '}';
+        return /*"Instruction: " +
+                "id=" + id +*/
+                "{instr=" + type +
+                ", op1=" + operand1 +
+                ", op2=" + operand2 + "}";
     }
 
+    //иначе не распознаётся сравнение инструкций
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Instructions that = (Instructions) o;
-        return type == that.type;
+        return  type == that.type && Objects.equals(operand1, that.operand1) && Objects.equals(operand2, that.operand2);
     }
 
     @Override
     public int hashCode() {
-        return type != null ? type.hashCode() : 0;
+        return Objects.hash(type, operand1, operand2);
     }
 }

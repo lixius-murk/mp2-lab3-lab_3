@@ -6,9 +6,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import org.lab_5v1.cpu_lib.instructions.InstructCode;
-import org.lab_5v1.cpu_lib.instructions.InstructionsException;
-import org.lab_5v1.model.BModel;
-import org.lab_5v1.model.Model;
 import org.lab_5v1.cpu_lib.instructions.Instructions;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,12 +81,12 @@ public class AddInstructionDialog {
                     return null;
                 }
 
-                Object[] operands = parseOperandsForInstruction(selectedInstruction);
+                List<String> operands = parseOperandsForInstruction(selectedInstruction);
                 if (operands == null) {
                     return null;
                 }
 
-                return new Instructions(selectedInstruction, operands);
+                return new Instructions(selectedInstruction, operands.get(0), operands.get(1));
             }
             return null;
         });
@@ -100,76 +97,124 @@ public class AddInstructionDialog {
     private void updateOperandLabels(InstructCode instruction) {
         if (instruction == null) return;
 
-
-        //сбрасываем значения полей при смене инструкции
+        // сбрасываем значения полей при смене инструкции
         operand1Field.setText("");
         operand2Field.setText("");
         registerComboBox1.setValue(null);
         registerComboBox2.setValue(null);
+        operand1Field.setVisible(true);
+        operand1Field.setDisable(false);
+        operand2Field.setVisible(true);
+        operand2Field.setDisable(false);
+        registerComboBox1.setVisible(false);
+        registerComboBox1.setDisable(false);
+        registerComboBox2.setVisible(false);
+        registerComboBox2.setDisable(false);
 
         switch (instruction) {
             case INIT:
                 operand1Label.setText("Memory address:");
                 operand2Label.setText("Initial value:");
+                // Оба поля - числовые значения
+                operand1Field.setVisible(true);
                 operand2Field.setVisible(true);
+                registerComboBox1.setVisible(false);
                 registerComboBox2.setVisible(false);
                 break;
 
             case LD:
                 operand1Label.setText("Register (dest):");
                 operand2Label.setText("Memory address:");
+                // Первый операнд - регистр (выпадающий список)
                 operand1Field.setVisible(false);
                 registerComboBox1.setVisible(true);
+                // Второй операнд - адрес памяти (поле ввода)
+                operand2Field.setVisible(true);
+                registerComboBox2.setVisible(false);
                 break;
 
             case ST:
                 operand1Label.setText("Register (src):");
                 operand2Label.setText("Memory address:");
+                // Первый операнд - регистр
                 operand1Field.setVisible(false);
                 registerComboBox1.setVisible(true);
+                // Второй операнд - адрес памяти
+                operand2Field.setVisible(true);
+                registerComboBox2.setVisible(false);
                 break;
 
-            case DIV, ADD, SUB, MULT:
-                operand1Label.setText("Register (dest):");
-                operand2Label.setText("Register or value:");
-                operand1Field.setVisible(false);
-                registerComboBox1.setVisible(true);
-                break;
-
+            case DIV:
+            case ADD:
+            case SUB:
+            case MULT:
             case MV:
                 operand1Label.setText("Register (dest):");
-                operand2Label.setText("Register or value (src):");
+                operand2Label.setText("Register or value:");
+                // Первый операнд - регистр
                 operand1Field.setVisible(false);
                 registerComboBox1.setVisible(true);
+                // Второй операнд - может быть регистром или значением
+                operand2Field.setVisible(true);
+                registerComboBox2.setVisible(false);
                 break;
 
-            case JMP, JG, JE:
+            case JMP:
+            case JG:
+            case JE:
+            case JL:
                 operand1Label.setText("Memory address:");
+                operand2Label.setText(""); // Скрываем второй операнд
+                operand1Field.setVisible(true);
                 operand2Field.setVisible(false);
+                registerComboBox1.setVisible(false);
+                registerComboBox2.setVisible(false);
                 break;
+
             case CMP:
-                operand1Label.setText("Register1 :");
-                operand2Label.setText("Register2 :");
+                operand1Label.setText("Register1:");
+                operand2Label.setText("Register2:");
+                // Оба операнда - регистры
+                operand1Field.setVisible(false);
+                operand2Field.setVisible(false);
                 registerComboBox1.setVisible(true);
                 registerComboBox2.setVisible(true);
                 break;
 
+            case PRINT:
+                operand1Label.setText("Register or value:");
+                operand2Label.setText(""); // Скрываем второй операнд
+                operand1Field.setVisible(true);
+                operand2Field.setVisible(false);
+                registerComboBox1.setVisible(false);
+                registerComboBox2.setVisible(false);
+                break;
+
+            default:
+                operand1Label.setText("Operand 1:");
+                operand2Label.setText("Operand 2:");
+                operand1Field.setVisible(true);
+                operand2Field.setVisible(true);
+                registerComboBox1.setVisible(false);
+                registerComboBox2.setVisible(false);
+                break;
         }
     }
 
-    private Object[] parseOperandsForInstruction(InstructCode instruction) {
-        List<Object> operands = new ArrayList<>();
+    private List<String> parseOperandsForInstruction(InstructCode instruction) {
+        List<String> operands = new ArrayList<>();
 
         switch (instruction) {
             case INIT:
-                // INIT address, register
+                // INIT address, value
                 String addrStr = operand1Field.getText().trim();
                 if (addrStr.isEmpty()) {
                     alert("Error", "Please enter memory address for INIT");
                     return null;
                 }
                 try {
-                    operands.add(Integer.parseInt(addrStr));
+                    Integer.parseInt(addrStr);
+                    operands.add(addrStr);
                 } catch (NumberFormatException e) {
                     alert("Error", "INIT address must be a number");
                     return null;
@@ -181,7 +226,8 @@ public class AddInstructionDialog {
                     return null;
                 }
                 try {
-                    operands.add(Integer.parseInt(valueStr));
+                    Integer.parseInt(valueStr);
+                    operands.add(valueStr);
                 } catch (NumberFormatException e) {
                     alert("Error", "INIT value must be a number");
                     return null;
@@ -203,7 +249,8 @@ public class AddInstructionDialog {
                     return null;
                 }
                 try {
-                    operands.add(Integer.parseInt(addrStr2));
+                    Integer.parseInt(addrStr2);
+                    operands.add(addrStr2);
                 } catch (NumberFormatException e) {
                     alert("Error", "LD address must be a number");
                     return null;
@@ -218,20 +265,26 @@ public class AddInstructionDialog {
                     return null;
                 }
                 operands.add(reg2.toLowerCase());
+
                 String addrStr3 = operand2Field.getText().trim();
                 if (addrStr3.isEmpty()) {
                     alert("Error", "Please enter memory address for ST");
                     return null;
                 }
                 try {
-                    operands.add(Integer.parseInt(addrStr3));
+                    Integer.parseInt(addrStr3);
+                    operands.add(addrStr3);
                 } catch (NumberFormatException e) {
                     alert("Error", "ST address must be a number");
                     return null;
                 }
                 break;
 
-            case MV, ADD, SUB, MULT, DIV:
+            case MV:
+            case ADD:
+            case SUB:
+            case MULT:
+            case DIV:
                 // instr register, register/number
                 String regArith = registerComboBox1.getValue();
                 if (regArith == null || regArith.isEmpty()) {
@@ -245,36 +298,59 @@ public class AddInstructionDialog {
                     alert("Error", "Please enter value or register for " + instruction);
                     return null;
                 }
-                operands.add(parseOperand(op2));
+                operands.add(op2);
                 break;
 
             case JMP:
-                //JMP address
+            case JG:
+            case JE:
+            case JL:
+                // JMP address
                 String jumpAddr = operand1Field.getText().trim();
                 if (jumpAddr.isEmpty()) {
-                    alert("Error", "Please enter memory address for JMP");
+                    alert("Error", "Please enter memory address for " + instruction);
                     return null;
                 }
                 try {
-                    operands.add(Integer.parseInt(jumpAddr));
+                    Integer.parseInt(jumpAddr);
+                    operands.add(jumpAddr);
+                    // Для JMP-подобных инструкций второй операнд пустой
+                    operands.add("");
                 } catch (NumberFormatException e) {
-                    alert("Error", "JMP address must be a number");
+                    alert("Error", instruction + " address must be a number");
                     return null;
                 }
                 break;
+
             case CMP:
-                //CMP reg1, reg2
-                String regA = operand2Field.getText().trim();
-                String regB = operand2Field.getText().trim();
-                if(regA.isEmpty()||regB.isEmpty()){
-                    alert("Error", "Please enter both registers");
+                // CMP reg1, reg2
+                String regA = registerComboBox1.getValue();
+                String regB = registerComboBox2.getValue();
+                if (regA == null || regA.isEmpty() || regB == null || regB.isEmpty()) {
+                    alert("Error", "Please select both registers for CMP");
+                    return null;
                 }
-                operands.add(regA);
-                operands.add(regB);
+                operands.add(regA.toLowerCase());
+                operands.add(regB.toLowerCase());
                 break;
+
+            case PRINT:
+                // PRINT register or value
+                String printOperand = operand1Field.getText().trim();
+                if (printOperand.isEmpty()) {
+                    alert("Error", "Please enter register or value for PRINT");
+                    return null;
+                }
+                operands.add(printOperand);
+                operands.add("");
+                break;
+
+            default:
+                alert("Error", "Instruction not supported: " + instruction);
+                return null;
         }
 
-        return operands.toArray();
+        return operands;
     }
 
     private Object parseOperand(String operand) {

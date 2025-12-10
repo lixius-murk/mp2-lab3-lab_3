@@ -1,9 +1,9 @@
 package org.lab_5v1.cpu_lib.memory;
 
 public class FlagRegister {
-    boolean ZF;
-    boolean SF;
-    boolean OF;
+    boolean ZF;// zero
+    boolean SF; //negative
+    boolean OF; //overflow
     public FlagRegister(){
         ZF = false;
         SF = false;

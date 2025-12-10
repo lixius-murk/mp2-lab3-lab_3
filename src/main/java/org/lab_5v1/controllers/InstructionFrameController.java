@@ -59,7 +59,15 @@ public class InstructionFrameController implements IObserver {
                 alert.showAndWait();
             }
         });
-
+        Bdelete.setOnAction(event -> {
+            try {
+                model.removeInstruction(index);
+            } catch (InstructionsException e) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION, e.getMessage(), ButtonType.OK);
+                alert.setHeaderText("Issue setting instruction");
+                alert.showAndWait();
+            }
+        });
         Bexecute.setOnAction(event -> {
             try {
                 model.executeInstruction(index);
@@ -85,19 +93,9 @@ public class InstructionFrameController implements IObserver {
         if (instruction != null) {
 
             Linstructions.setText(instruction.getInstructCode().name());
-            Object[] operands = instruction.getOperands();
-            if (operands.length > 0) {
-                Lop1.setText(String.valueOf(operands[0]));
-            } else {
-                Lop1.setText("");
-            }
 
-            if (operands.length > 1) {
-                Lop2.setText(String.valueOf(operands[1]));
-            } else {
-                Lop2.setText("");
-            }
-
+            Lop1.setText(String.valueOf(instruction.getOperand1()));
+            Lop2.setText(String.valueOf(instruction.getOperand2()));
         }
 
     }

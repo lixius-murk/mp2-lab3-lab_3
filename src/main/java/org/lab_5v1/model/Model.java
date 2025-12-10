@@ -33,16 +33,6 @@ public class  Model implements Iterable<Instructions> {
         loadFromDB();
     }
 
-    private void loadFromDB() throws InstructionsException {
-        if (instructionsList instanceof InstructionsDAO_Hibernate) {
-            ((InstructionsDAO_Hibernate) instructionsList).syncWithDatabase();
-        }
-        instructionCountMap.clear();
-        for (Instructions instr : instructionsList) {
-            instructionCountMap.merge(instr, 1, Integer::sum);
-        }
-        notifyObservers();
-    }
 
 
     public void addObserver(IObserver observer) {
@@ -59,8 +49,6 @@ public class  Model implements Iterable<Instructions> {
             throw new InstructionsException("Invalid instruction indices for swapping");
         }
 
-
-        System.out.println("[Model] Swapping instructions at indices " + ind1 + " and " + ind2);
         Instructions instr1 = instructionsList.get(ind1);
         Instructions instr2 = instructionsList.get(ind2);
 
@@ -72,7 +60,16 @@ public class  Model implements Iterable<Instructions> {
 
     }
 
-
+    private void loadFromDB() throws InstructionsException {
+        if (instructionsList instanceof InstructionsDAO_Hibernate) {
+            ((InstructionsDAO_Hibernate) instructionsList).syncWithDatabase();
+        }
+        instructionCountMap.clear();
+        for (Instructions instr : instructionsList) {
+            updateInstructionCount(instr);
+        }
+        notifyObservers();
+    }
     public void removeObserver(IObserver observer) {
         observers.remove(observer);
     }
@@ -82,7 +79,16 @@ public class  Model implements Iterable<Instructions> {
             observer.event();
         }
     }
-    public List<Map.Entry<Instructions, Integer>> getMaxInstr(int amount){
+    private void updateInstructionCount(Instructions instr) {
+        instructionCountMap.merge(instr, 1, Integer::sum);
+    }
+    public List<Map.Entry<Instructions, Integer>> getMaxInstr(int amount) {
+        instructionCountMap.clear();
+
+        for (Instructions instr : instructionsList) {
+            instructionCountMap.merge(instr, 1, Integer::sum);
+        }
+
         return instructionCountMap.entrySet().stream()
                 .sorted(Map.Entry.<Instructions, Integer>comparingByValue().reversed())
                 .limit(amount)
@@ -124,11 +130,10 @@ public class  Model implements Iterable<Instructions> {
         return registers;
     }
 
-    public void addInstruction(InstructCode code, Object... operands) throws InstructionsException {
-        Object[] processedOperands = processOperands(code, operands);
-        validateInstruction(code, processedOperands);
+    public void addInstruction(InstructCode code, String... operands) throws InstructionsException {
+        validateInstruction(code, operands);
 
-        Instructions instr = new Instructions(code, processedOperands);
+        Instructions instr = new Instructions(code, operands);
         instructionsList.add(instr);
         instructionCountMap.merge(instr, 1, Integer::sum);
 
@@ -144,77 +149,45 @@ public class  Model implements Iterable<Instructions> {
         }
     }
 
-    private void validateInstruction(InstructCode code, Object[] operands) throws InstructionsException {
+    private void validateInstruction(InstructCode code, String... operands) throws InstructionsException {
         switch (code) {
             case INIT:
-                //INIT address, val
-                if (operands.length != 2) {
-                    throw new InstructionsException("INIT requires 2 operands: address and value");
-                }
-                if (!(operands[0] instanceof Integer)) {
-                    throw new InstructionsException("INIT first operand must be a memory address (number)");
+                // INIT address, val
+                if (operands.length < 2) {
+                    throw new InstructionsException(code + " requires 2 operands: address and value");
                 }
 
-                int address = (Integer) operands[0];
-                if (address < 0 || address >= 1024) {
-                    throw new InstructionsException("Address out of range: " + address);
-                }
-
-                if (!(operands[1] instanceof Integer)) {
-                    throw new InstructionsException("Second operand must be a number");
+                try {
+                    int address = Integer.parseInt(operands[0]);
+                    if (address < 0 || address >= 1024) {
+                        throw new InstructionsException("Address out of range: " + address);
+                    }
+                    Integer.parseInt(operands[1]);
+                } catch (NumberFormatException e) {
+                    throw new InstructionsException(code + " operands must be numbers");
                 }
                 break;
 
-            case LD:
-                //LD register, address
-                if (operands.length != 2) {
-                    throw new InstructionsException("LD requires 2 operands: register and address");
+            case LD, ST:
+                // LD register, address
+                if (operands.length < 2) {
+                    throw new InstructionsException(code + "  requires 2 operands: register and address");
                 }
 
-                if (!(operands[0] instanceof String)) {
-                    throw new InstructionsException("LD first operand must be a register (a,b,c,d)");
-                }
-
-                String loadReg = (String) operands[0];
+                String loadReg = operands[0];
                 if (!loadReg.matches("[abcd]")) {
                     throw new InstructionsException("Register must be a,b,c,d, got: " + loadReg);
                 }
 
-                if (!(operands[1] instanceof Integer)) {
-                    throw new InstructionsException("Second operand must be a memory address (number)");
-                }
-
-                int loadAddr = (Integer) operands[1];
-                if (loadAddr < 0 || loadAddr >= 1024) {
-                    throw new InstructionsException("LD address out of range: " + loadAddr);
-                }
-                break;
-
-            case ST:
-                //ST register, address
-                if (operands.length != 2) {
-                    throw new InstructionsException("STORE requires 2 operands: register and address");
-                }
-
-                if (!(operands[0] instanceof String)) {
-                    throw new InstructionsException("STORE first operand must be a register (a,b,c,d)");
-                }
-
-                String storeReg = (String) operands[0];
-                if (!storeReg.matches("[abcd]")) {
-                    throw new InstructionsException("Register must be a,b,c,d, got: " + storeReg);
-                }
-
-                if (!(operands[1] instanceof Integer)) {
-                    throw new InstructionsException("Operand must be a memory address (number)");
-                }
-
-                int storeAddr = (Integer) operands[1];
-                if (storeAddr < 0 || storeAddr >= 1024) {
-                    throw new InstructionsException("ST address out of range: " + storeAddr);
+                try {
+                    int loadAddr = Integer.parseInt(operands[1]);
+                    if (loadAddr < 0 || loadAddr >= 1024) {
+                        throw new InstructionsException(code + " address out of range: " + loadAddr);
+                    }
+                } catch (NumberFormatException e) {
+                    throw new InstructionsException(code + " address must be a number");
                 }
                 break;
-
             case DIV, MULT, ADD, SUB, MV:
                 if (operands.length != 2) {
                     throw new InstructionsException(code + " Requires 2 operands: register and register/value");
@@ -230,14 +203,13 @@ public class  Model implements Iterable<Instructions> {
                     throw new InstructionsException(code + " register must be a,b,c,d, got: " + reg1);
                 }
                 break;
-
             case JMP, JG, JE, JL:
                 //JMP address
                 if (operands.length != 1) {
                     throw new InstructionsException(code + " Requires 1 operand: address");
                 }
-                if ((Integer)operands[0] < 0 || (Integer)operands[0] >= 1024) {
-                    throw new InstructionsException("JMP address out of range: " + operands[0]);
+                if (Integer.parseInt(operands[0]) < 0 || Integer.parseInt(operands[0]) >= 1024) {
+                    throw new InstructionsException(code + " address out of range: " + operands[0]);
                 }
                 break;
             case CMP:
@@ -245,18 +217,17 @@ public class  Model implements Iterable<Instructions> {
                 if (operands.length != 2) {
                     throw new InstructionsException(code + " Requires 2 operand: reg1, reg2");
                 }
-                String reg_1 = (String) operands[0];
+                String reg_1 = operands[0];
                 if (!reg_1.matches("[abcd]")) {
                     throw new InstructionsException("Register must be a,b,c,d, got: " + reg_1);
                 }
-                String reg_2 = (String) operands[1];
+                String reg_2 = operands[1];
                 if (!reg_2.matches("[abcd]")) {
                     throw new InstructionsException("Register must be a,b,c,d, got: " + reg_2);
                 }
                 break;
         }
     }
-
     public Instructions getInstruction(int index) throws InstructionsException {
         if (index >= 0 && index < instructionsList.size()) {
             return instructionsList.get(index);
@@ -330,31 +301,6 @@ public class  Model implements Iterable<Instructions> {
         notifyObservers();
     }
 
-
-    private Object[] processOperands(InstructCode code, Object[] operands) {
-        Object[] res = new Object[operands.length];
-
-        for (int i = 0; i < operands.length; i++) {
-            Object operand = operands[i];
-
-            if (operand instanceof Optional) {
-                Optional<?> optional = (Optional<?>) operand;
-                operand = optional.orElse(null);
-            }
-
-            if (operand instanceof String) {
-                String str = (String) operand;
-                try {
-                    res[i] = Integer.parseInt(str);
-                } catch (NumberFormatException e) {
-                    res[i] = str.toLowerCase();
-                }
-            } else {
-                res[i] = operand;
-            }
-        }
-        return res;
-    }
 
 
     public int getInstructionCount() {

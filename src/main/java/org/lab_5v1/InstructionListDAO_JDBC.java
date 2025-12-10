@@ -69,18 +69,8 @@ public class InstructionListDAO_JDBC extends InstructionsListDAO {
                     String op1 = rs.getString("OPERAND1");
                     String op2 = rs.getString("OPERAND2");
 
-                    Object[] operands;
-                    if (op1 != null && op2 != null) {
-                        operands = new Object[]{parseOperand(op1), parseOperand(op2)};
-                    } else if (op1 != null) {
-                        operands = new Object[]{parseOperand(op1)};
-                    } else if (op2 != null) {
-                        operands = new Object[]{null, parseOperand(op2)};
-                    } else {
-                        operands = new Object[0];
-                    }
 
-                    Instructions instr = new Instructions(type, operands);
+                    Instructions instr = new Instructions(type, op1, op2);
                     instructionsList.add(instr);
 
                     loadedCount++;
@@ -109,23 +99,17 @@ public class InstructionListDAO_JDBC extends InstructionsListDAO {
     }
 
     @Override
-    public void addInstr(Instructions instr) {
+    public void addInstr(Instructions instruction) {
         String sql = "INSERT INTO instructions_lab(INSTRUCTIONCODE, OPERAND1, OPERAND2) VALUES (?, ?, ?)";
 
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, instr.getInstructCode().name());
+            pstmt.setString(1, instruction.getInstructCode().name());
 
-            Object[] operands = instr.getOperands();
-            if (operands.length > 0 && operands[0] != null) {
-                pstmt.setString(2, operands[0].toString());
-            };
-
-            if (operands.length > 1 && operands[1] != null) {
-                pstmt.setString(3, operands[1].toString());
-            };
+            pstmt.setString(2,  instruction.getOperand1() != null ? instruction.getOperand1() : null);
+            pstmt.setString(3, instruction.getOperand2() != null ? instruction.getOperand2() : null);
 
             //добавляем в локальный список (кэш??)
-            Instructions newInstr = new Instructions(instr.getInstructCode(), operands);
+            Instructions newInstr = new Instructions(instruction.getInstructCode(), instruction.getOperand1(), instruction.getOperand2());
             instructionsList.add(newInstr);
 
 
@@ -142,9 +126,8 @@ public class InstructionListDAO_JDBC extends InstructionsListDAO {
             PreparedStatement pst = connection.prepareStatement(
                     "INSERT INTO instructions_lab(INSTRUCTIONCODE, OPERAND1, OPERAND2) VALUES (?, ?, ?)");
             pst.setString(1, instruction.getInstructCode().toString());
-            Object[] operands = instruction.getOperands();
-            pst.setString(2, operands.length > 0 && operands[0] != null ? operands[0].toString() : null);
-            pst.setString(3, operands.length > 1 && operands[1] != null ? operands[1].toString() : null);
+            pst.setString(2,  instruction.getOperand1() != null ? instruction.getOperand1() : null);
+            pst.setString(3, instruction.getOperand2() != null ? instruction.getOperand2() : null);
             pst.executeUpdate();
 
             instructionsList.add(instruction);
@@ -262,14 +245,8 @@ public class InstructionListDAO_JDBC extends InstructionsListDAO {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, instruction.getInstructCode().name());
 
-            Object[] operands = instruction.getOperands();
-            if (operands.length > 0 && operands[0] != null) {
-                pstmt.setString(2, operands[0].toString());
-            }
-
-            if (operands.length > 1 && operands[1] != null) {
-                pstmt.setString(3, operands[1].toString());
-            }
+            pstmt.setString(2,  instruction.getOperand1() != null ? instruction.getOperand1() : null);
+            pstmt.setString(3, instruction.getOperand2() != null ? instruction.getOperand2() : null);
 
             pstmt.setInt(4, id);
 

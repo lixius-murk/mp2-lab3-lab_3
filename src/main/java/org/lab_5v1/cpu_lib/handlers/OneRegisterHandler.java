@@ -15,13 +15,11 @@ public class OneRegisterHandler extends Handler {
     @Override
     public void run(Instructions instruction, CPU cpu) throws InstructionsException {
         if (canHandle(instruction)) {
-            for (Object operand : instruction.getOperands()) {
-                String register = (String) operand;
-                int value = cpu.getRegister().getValue(register, 0);
-                System.out.print(register + "=" + value + " ");
-            }
-            System.out.println();
-        } else {
+            String register = instruction.getOperand1();
+            int value = cpu.getRegister().getValue(register, 0);
+            System.out.print(register + "=" + value + " ");
+
+
             passToNext(instruction, cpu);
         }
     }
