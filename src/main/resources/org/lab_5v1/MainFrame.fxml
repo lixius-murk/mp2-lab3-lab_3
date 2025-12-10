@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="300.0" prefWidth="500.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.lab_5v1.controllers.MainFrameController">
+
+   <VBox layoutX="10.0" layoutY="10.0" spacing="10.0">
+
+      <HBox prefHeight="200.0" spacing="10.0">
+
+         <!--регистры-->
+         <VBox spacing="5.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
+            <Label prefWidth="85.0" text="Регистры">
+               <font>
+                  <Font size="20.0" />
+               </font></Label>
+            <Pane fx:id="PaneRegisterState" prefHeight="69.0" prefWidth="252.0" />
+            <Label text="Статистика">
+               <font>
+                  <Font size="20.0" />
+               </font>
+            </Label>
+            <Label fx:id="Lstatistic" alignment="TOP_LEFT" prefHeight="42.0" prefWidth="250.0" text="-" />
+         </VBox>
+
+         <!--  память -->
+         <VBox prefWidth="500.0" spacing="5.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+               <Label text="Память (0-99)">
+                  <font>
+                     <Font size="16.0" />
+                  </font></Label>
+               <Label text="10x10 ячеек" />
+            </HBox>
+            <ScrollPane prefHeight="150.0" prefWidth="480.0" style="-fx-background-color: white; -fx-border-color: #bdc3c7;">
+               <FlowPane fx:id="FlowPaneMem" prefWidth="480.0" />
+            </ScrollPane>
+         </VBox>
+
+         <!-- кнопки -->
+         <VBox alignment="TOP_CENTER" prefWidth="200.0" spacing="10.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
+
+            <Button fx:id="BaddInstruction" graphicTextGap="0.0" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #3498db; -fx-font-weight: bold;" text="Add new instr." textFill="WHITE">
+               <font>
+                  <Font name="Comic Sans MS" size="10.0" />
+               </font></Button>
+
+            <Button fx:id="BexecuteInstruction" graphicTextGap="0.0" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #2ecc71; -fx-font-weight: bold;" text="Execute instr." textFill="WHITE">
+               <font>
+                  <Font name="Comic Sans MS" size="10.0" />
+               </font></Button>
+
+            <Button fx:id="BresetProgram" graphicTextGap="0.0" prefHeight="40.0" prefWidth="180.0" style="-fx-background-color: #e74c3c;  -fx-font-weight: bold;" text="Reset all instr." textFill="WHITE">
+               <font>
+                  <Font name="Comic Sans MS" size="10.0" />
+               </font></Button>
+            <Button fx:id="Bdebug" mnemonicParsing="false" prefHeight="26.0" prefWidth="178.0" text="Debug" />
+         </VBox>
+      </HBox>
+
+      <!-- список инструкций -->
+      <VBox prefHeight="439.0" prefWidth="994.0" spacing="5.0" style="-fx-background-color: #ecf0f1; -fx-border-color: #bdc3c7; -fx-border-radius: 5; -fx-padding: 10;">
+
+         <ScrollPane fx:id="ScrollpaneInstructions" maxHeight="417.0" maxWidth="972.0" minHeight="417.0" minWidth="972.0" prefHeight="417.0" prefWidth="972.0" style="-fx-background-color: white; -fx-border-color: #bdc3c7;">
+            <AnchorPane minHeight="0.0" minWidth="0.0" />
+         </ScrollPane>
+      </VBox>
+   </VBox>
+</AnchorPane>
